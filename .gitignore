@@ -1,0 +1,29 @@
+# Python Byte-code / Cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.cache/
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+
+# Database (Generated at runtime)
+database/*.db
+*.sqlite3
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS Specific
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
