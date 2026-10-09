@@ -8,19 +8,16 @@ import numpy as np
 import mediapipe as mp
 from typing import Optional, Tuple, List, Dict, Any
 
-try:
-    import mediapipe.python.solutions.face_mesh as mp_face_mesh
-    import mediapipe.python.solutions.drawing_utils as mp_drawing
-    import mediapipe.python.solutions.drawing_styles as mp_drawing_styles
-except Exception:
+mp_solutions = getattr(mp, 'solutions', None)
+if mp_solutions is None:
     try:
-        mp_face_mesh = mp.solutions.face_mesh
-        mp_drawing = mp.solutions.drawing_utils
-        mp_drawing_styles = mp.solutions.drawing_styles
-    except AttributeError:
-        import mediapipe.solutions.face_mesh as mp_face_mesh
-        import mediapipe.solutions.drawing_utils as mp_drawing
-        import mediapipe.solutions.drawing_styles as mp_drawing_styles
+        import mediapipe.python.solutions as mp_solutions
+    except ModuleNotFoundError:
+        import mediapipe.solutions as mp_solutions
+
+mp_face_mesh = mp_solutions.face_mesh
+mp_drawing = mp_solutions.drawing_utils
+mp_drawing_styles = mp_solutions.drawing_styles
 
 
 class FaceDetector:

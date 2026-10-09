@@ -10,19 +10,16 @@ import numpy as np
 import mediapipe as mp
 from typing import List, Tuple, Dict, Any, Optional
 
-try:
-    import mediapipe.python.solutions.hands as mp_hands
-    import mediapipe.python.solutions.drawing_utils as mp_drawing
-    import mediapipe.python.solutions.drawing_styles as mp_drawing_styles
-except Exception:
+mp_solutions = getattr(mp, 'solutions', None)
+if mp_solutions is None:
     try:
-        mp_hands = mp.solutions.hands
-        mp_drawing = mp.solutions.drawing_utils
-        mp_drawing_styles = mp.solutions.drawing_styles
-    except AttributeError:
-        import mediapipe.solutions.hands as mp_hands
-        import mediapipe.solutions.drawing_utils as mp_drawing
-        import mediapipe.solutions.drawing_styles as mp_drawing_styles
+        import mediapipe.python.solutions as mp_solutions
+    except ModuleNotFoundError:
+        import mediapipe.solutions as mp_solutions
+
+mp_hands = mp_solutions.hands
+mp_drawing = mp_solutions.drawing_utils
+mp_drawing_styles = mp_solutions.drawing_styles
 
 
 class HandDetector:
