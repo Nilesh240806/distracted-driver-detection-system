@@ -1,11 +1,10 @@
 Flask>=3.0.0
 Flask-SocketIO>=5.3.6
-opencv-python>=4.8.0
-mediapipe==0.10.14
-numpy>=1.24.0,<2.0.0
+opencv-python-headless>=4.8.0
+mediapipe>=0.10.14
+numpy>=1.24.0
 python-socketio>=5.11.0
 simple-websocket>=1.0.0
 pandas>=2.0.0
 pytest>=7.4.0
 gunicorn>=21.2.0
-
