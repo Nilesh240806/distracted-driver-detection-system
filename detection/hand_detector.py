@@ -10,6 +10,20 @@ import numpy as np
 import mediapipe as mp
 from typing import List, Tuple, Dict, Any, Optional
 
+try:
+    import mediapipe.python.solutions.hands as mp_hands
+    import mediapipe.python.solutions.drawing_utils as mp_drawing
+    import mediapipe.python.solutions.drawing_styles as mp_drawing_styles
+except Exception:
+    try:
+        mp_hands = mp.solutions.hands
+        mp_drawing = mp.solutions.drawing_utils
+        mp_drawing_styles = mp.solutions.drawing_styles
+    except AttributeError:
+        import mediapipe.solutions.hands as mp_hands
+        import mediapipe.solutions.drawing_utils as mp_drawing
+        import mediapipe.solutions.drawing_styles as mp_drawing_styles
+
 
 class HandDetector:
     """
@@ -19,14 +33,14 @@ class HandDetector:
 
     def __init__(self, one_hand_threshold_sec: float = 2.0, min_detection_confidence: float = 0.5, min_tracking_confidence: float = 0.5):
         self.one_hand_threshold_sec = one_hand_threshold_sec
-        self.mp_hands = mp.solutions.hands
+        self.mp_hands = mp_hands
         self.hands = self.mp_hands.Hands(
             max_num_hands=2,
             min_detection_confidence=min_detection_confidence,
             min_tracking_confidence=min_tracking_confidence
         )
-        self.mp_drawing = mp.solutions.drawing_utils
-        self.mp_drawing_styles = mp.solutions.drawing_styles
+        self.mp_drawing = mp_drawing
+        self.mp_drawing_styles = mp_drawing_styles
 
         # Temporal state tracking
         self.current_state: str = "TWO HANDS"  # 'TWO HANDS', 'ONE HAND', 'NO HANDS'

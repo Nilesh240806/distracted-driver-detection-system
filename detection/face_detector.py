@@ -8,20 +8,34 @@ import numpy as np
 import mediapipe as mp
 from typing import Optional, Tuple, List, Dict, Any
 
+try:
+    import mediapipe.python.solutions.face_mesh as mp_face_mesh
+    import mediapipe.python.solutions.drawing_utils as mp_drawing
+    import mediapipe.python.solutions.drawing_styles as mp_drawing_styles
+except Exception:
+    try:
+        mp_face_mesh = mp.solutions.face_mesh
+        mp_drawing = mp.solutions.drawing_utils
+        mp_drawing_styles = mp.solutions.drawing_styles
+    except AttributeError:
+        import mediapipe.solutions.face_mesh as mp_face_mesh
+        import mediapipe.solutions.drawing_utils as mp_drawing
+        import mediapipe.solutions.drawing_styles as mp_drawing_styles
+
 
 class FaceDetector:
     """Detects face presence, 468+ facial landmarks, and computes the face bounding box."""
 
     def __init__(self, min_detection_confidence: float = 0.5, min_tracking_confidence: float = 0.5):
-        self.mp_face_mesh = mp.solutions.face_mesh
+        self.mp_face_mesh = mp_face_mesh
         self.face_mesh = self.mp_face_mesh.FaceMesh(
             max_num_faces=1,
             refine_landmarks=True,
             min_detection_confidence=min_detection_confidence,
             min_tracking_confidence=min_tracking_confidence
         )
-        self.mp_drawing = mp.solutions.drawing_utils
-        self.mp_drawing_styles = mp.solutions.drawing_styles
+        self.mp_drawing = mp_drawing
+        self.mp_drawing_styles = mp_drawing_styles
 
     def process(self, frame_bgr: np.ndarray) -> Dict[str, Any]:
         """
