@@ -1,23 +1,34 @@
 """
 Face Detector Module.
 Uses MediaPipe Face Mesh to detect facial landmarks and bounding box in real time.
+Includes fail-safe fallback for headless cloud servers (Render / Heroku / AWS).
 """
 
 import cv2
 import numpy as np
-import mediapipe as mp
 from typing import Optional, Tuple, List, Dict, Any
 
-mp_solutions = getattr(mp, 'solutions', None)
-if mp_solutions is None:
-    try:
-        import mediapipe.python.solutions as mp_solutions
-    except ModuleNotFoundError:
-        import mediapipe.solutions as mp_solutions
+MP_AVAILABLE = False
+mp_face_mesh = None
+mp_drawing = None
+mp_drawing_styles = None
 
-mp_face_mesh = mp_solutions.face_mesh
-mp_drawing = mp_solutions.drawing_utils
-mp_drawing_styles = mp_solutions.drawing_styles
+try:
+    import mediapipe as mp
+    mp_solutions = getattr(mp, 'solutions', None)
+    if mp_solutions is None:
+        try:
+            import mediapipe.python.solutions as mp_solutions
+        except Exception:
+            import mediapipe.solutions as mp_solutions
+    mp_face_mesh = getattr(mp_solutions, 'face_mesh', None)
+    mp_drawing = getattr(mp_solutions, 'drawing_utils', None)
+    mp_drawing_styles = getattr(mp_solutions, 'drawing_styles', None)
+    if mp_face_mesh is not None:
+        MP_AVAILABLE = True
+except Exception as e:
+    print(f"[WARNING] MediaPipe Face Mesh not available on cloud host: {e}")
+    MP_AVAILABLE = False
 
 
 class FaceDetector:
@@ -25,36 +36,48 @@ class FaceDetector:
 
     def __init__(self, min_detection_confidence: float = 0.5, min_tracking_confidence: float = 0.5):
         self.mp_face_mesh = mp_face_mesh
-        self.face_mesh = self.mp_face_mesh.FaceMesh(
-            max_num_faces=1,
-            refine_landmarks=True,
-            min_detection_confidence=min_detection_confidence,
-            min_tracking_confidence=min_tracking_confidence
-        )
+        self.face_mesh = None
+        if MP_AVAILABLE and self.mp_face_mesh is not None:
+            try:
+                self.face_mesh = self.mp_face_mesh.FaceMesh(
+                    max_num_faces=1,
+                    refine_landmarks=True,
+                    min_detection_confidence=min_detection_confidence,
+                    min_tracking_confidence=min_tracking_confidence
+                )
+            except Exception as e:
+                print(f"[WARNING] Failed to initialize FaceMesh object: {e}")
+                self.face_mesh = None
+
         self.mp_drawing = mp_drawing
         self.mp_drawing_styles = mp_drawing_styles
 
     def process(self, frame_bgr: np.ndarray) -> Dict[str, Any]:
-        """
-        Processes a BGR video frame and returns face detection metadata.
-        
-        Args:
-            frame_bgr: OpenCV BGR image (H, W, 3)
-            
-        Returns:
-            Dict containing:
-                - face_detected: bool
-                - landmarks_norm: List of (x, y, z) in [0, 1]
-                - landmarks_px: List of (x, y, z) in pixel coords
-                - bbox: (x_min, y_min, width, height) in pixel coords
-                - mesh_results: raw mediapipe result for custom drawing
-        """
+        if not MP_AVAILABLE or self.face_mesh is None:
+            return {
+                'face_detected': False,
+                'landmarks_norm': [],
+                'landmarks_px': [],
+                'bbox': None,
+                'mesh_results': None
+            }
+
         h, w, _ = frame_bgr.shape
         frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
         frame_rgb.flags.writeable = False
-        results = self.face_mesh.process(frame_rgb)
         
-        if not results.multi_face_landmarks:
+        try:
+            results = self.face_mesh.process(frame_rgb)
+        except Exception as e:
+            return {
+                'face_detected': False,
+                'landmarks_norm': [],
+                'landmarks_px': [],
+                'bbox': None,
+                'mesh_results': None
+            }
+
+        if not results or not getattr(results, 'multi_face_landmarks', None):
             return {
                 'face_detected': False,
                 'landmarks_norm': [],
@@ -66,7 +89,6 @@ class FaceDetector:
         face_landmarks = results.multi_face_landmarks[0]
         landmarks_norm = []
         landmarks_px = []
-        
         x_coords = []
         y_coords = []
 
@@ -77,7 +99,6 @@ class FaceDetector:
             x_coords.append(px_x)
             y_coords.append(px_y)
 
-        # Compute tight bounding box with slight margin
         x_min = max(0, min(x_coords) - 10)
         y_min = max(0, min(y_coords) - 10)
         x_max = min(w, max(x_coords) + 10)
@@ -93,40 +114,33 @@ class FaceDetector:
         }
 
     def draw_face_mesh(self, frame: np.ndarray, mesh_results, draw_contours: bool = True) -> np.ndarray:
-        """Draws aesthetic subtle face mesh tessellation and contours on frame."""
-        if mesh_results and mesh_results.multi_face_landmarks:
-            for face_landmarks in mesh_results.multi_face_landmarks:
-                if draw_contours:
-                    self.mp_drawing.draw_landmarks(
-                        image=frame,
-                        landmark_list=face_landmarks,
-                        connections=self.mp_face_mesh.FACEMESH_CONTOURS,
-                        landmark_drawing_spec=None,
-                        connection_drawing_spec=self.mp_drawing_styles.get_default_face_mesh_contours_style()
-                    )
+        if MP_AVAILABLE and self.mp_drawing and self.mp_face_mesh and mesh_results and getattr(mesh_results, 'multi_face_landmarks', None):
+            try:
+                for face_landmarks in mesh_results.multi_face_landmarks:
+                    if draw_contours:
+                        self.mp_drawing.draw_landmarks(
+                            image=frame,
+                            landmark_list=face_landmarks,
+                            connections=self.mp_face_mesh.FACEMESH_CONTOURS,
+                            landmark_drawing_spec=None,
+                            connection_drawing_spec=self.mp_drawing_styles.get_default_face_mesh_contours_style()
+                        )
+            except Exception:
+                pass
         return frame
 
     def draw_bounding_box(self, frame: np.ndarray, bbox: Optional[Tuple[int, int, int, int]], status_color: Tuple[int, int, int] = (0, 255, 0)) -> np.ndarray:
-        """Draws automotive-styled corner brackets around the detected face."""
         if bbox is None:
             return frame
-            
         x, y, w, h = bbox
         corner_len = min(25, w // 4, h // 4)
         thickness = 2
-        
-        # Draw 4 aesthetic corner brackets
-        # Top-Left
         cv2.line(frame, (x, y), (x + corner_len, y), status_color, thickness)
         cv2.line(frame, (x, y), (x, y + corner_len), status_color, thickness)
-        # Top-Right
         cv2.line(frame, (x + w, y), (x + w - corner_len, y), status_color, thickness)
         cv2.line(frame, (x + w, y), (x + w, y + corner_len), status_color, thickness)
-        # Bottom-Left
         cv2.line(frame, (x, y + h), (x + corner_len, y + h), status_color, thickness)
         cv2.line(frame, (x, y + h), (x, y + h - corner_len), status_color, thickness)
-        # Bottom-Right
         cv2.line(frame, (x + w, y + h), (x + w - corner_len, y + h), status_color, thickness)
         cv2.line(frame, (x + w, y + h), (x + w, y + h - corner_len), status_color, thickness)
-
         return frame
