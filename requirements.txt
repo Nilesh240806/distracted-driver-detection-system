@@ -7,3 +7,5 @@ python-socketio>=5.11.0
 simple-websocket>=1.0.0
 pandas>=2.0.0
 pytest>=7.4.0
+gunicorn>=21.2.0
+
