@@ -346,4 +346,6 @@ if __name__ == '__main__':
     print(" Web Dashboard: http://127.0.0.1:5000 ")
     print("="*70 + "\n")
     
-    socketio.run(app, host='127.0.0.1', port=5000, debug=False, allow_unsafe_werkzeug=True)
+    host = os.environ.get('HOST', '0.0.0.0')
+    port = int(os.environ.get('PORT', 5000))
+    socketio.run(app, host=host, port=port, debug=False, allow_unsafe_werkzeug=True)
