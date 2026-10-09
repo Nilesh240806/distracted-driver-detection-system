@@ -330,6 +330,39 @@ def handle_telemetry_request():
     emit('telemetry_update', camera_manager.latest_telemetry)
 
 
+import base64
+
+@socketio.on('process_browser_frame')
+def handle_browser_frame(data_url):
+    """Processes real-time webcam frame sent from client browser."""
+    try:
+        if not data_url or not isinstance(data_url, str):
+            return
+        if ',' in data_url:
+            _, encoded = data_url.split(',', 1)
+        else:
+            encoded = data_url
+        img_bytes = base64.b64decode(encoded)
+        nparr = np.frombuffer(img_bytes, np.uint8)
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        if frame is not None and frame.size > 0:
+            if frame.shape[1] > 640:
+                frame = cv2.resize(frame, (640, 480))
+            
+            processed_frame, telemetry = engine.process_frame(frame)
+            camera_manager.latest_telemetry = telemetry
+            
+            ret, buffer = cv2.imencode('.jpg', processed_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 65])
+            if ret:
+                processed_b64 = "data:image/jpeg;base64," + base64.b64encode(buffer).decode('utf-8')
+                emit('processed_frame_response', {
+                    'image': processed_b64,
+                    'telemetry': telemetry
+                })
+    except Exception as e:
+        print(f"[DEBUG] handle_browser_frame exception: {e}")
+
+
 # Auto-start camera upon launching
 def start_app_camera():
     camera_manager.start()

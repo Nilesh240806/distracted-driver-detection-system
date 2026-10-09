@@ -326,6 +326,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateDashboard(telemetry);
             });
 
+            socket.on('processed_frame_response', (data) => {
+                isSendingFrame = false;
+                if (data && data.image) {
+                    const imgEl = document.getElementById('live-video-stream');
+                    if (imgEl) {
+                        imgEl.src = data.image;
+                        const errOverlay = document.getElementById('camera-error-overlay');
+                        if (errOverlay) errOverlay.classList.add('d-none');
+                        const camLabel = document.getElementById('cam-status-label');
+                        if (camLabel) camLabel.innerHTML = '<i class="fa-solid fa-link text-success me-1"></i>CAM OK';
+                    }
+                }
+                if (data && data.telemetry) {
+                    updateDashboard(data.telemetry);
+                }
+                setTimeout(sendNextBrowserFrame, 50);
+            });
+
             socket.on('alert_triggered', (telemetry) => {
                 logEvent(`ALERT TRIGGERED: ${telemetry.alert} (${telemetry.severity})`, (telemetry.severity || 'info').toLowerCase());
                 fetchAlertHistory();
@@ -335,6 +353,85 @@ document.addEventListener('DOMContentLoaded', () => {
             console.warn("[SOCKET] Socket.IO init error:", e);
             startPollingTelemetry();
         }
+
+        // Auto-start browser webcam for cloud deployments (e.g. Render)
+        setTimeout(() => {
+            initBrowserWebcam();
+        }, 1500);
+    }
+
+    // -------------------------------------------------------------
+    // BROWSER WEBCAM CLIENT STREAMER (FOR CLOUD DEPLOYMENTS)
+    // -------------------------------------------------------------
+    let clientMediaStream = null;
+    let clientWebcamActive = false;
+    let isSendingFrame = false;
+
+    async function initBrowserWebcam() {
+        if (clientWebcamActive) return;
+        try {
+            let video = document.getElementById('client-webcam-element');
+            if (!video) {
+                video = document.createElement('video');
+                video.id = 'client-webcam-element';
+                video.setAttribute('autoplay', '');
+                video.setAttribute('playsinline', '');
+                video.setAttribute('muted', '');
+                video.style.display = 'none';
+                document.body.appendChild(video);
+            }
+
+            let canvas = document.getElementById('client-canvas-element');
+            if (!canvas) {
+                canvas = document.createElement('canvas');
+                canvas.id = 'client-canvas-element';
+                canvas.style.display = 'none';
+                document.body.appendChild(canvas);
+            }
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                console.warn('Browser webcam API not supported.');
+                return;
+            }
+
+            clientMediaStream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { max: 30 } }
+            });
+            video.srcObject = clientMediaStream;
+            await video.play();
+            clientWebcamActive = true;
+            logEvent('Browser webcam active. Streaming live feed to AI engine...', 'success');
+            
+            const errOverlay = document.getElementById('camera-error-overlay');
+            if (errOverlay) errOverlay.classList.add('d-none');
+
+            sendNextBrowserFrame();
+        } catch (err) {
+            console.warn('Browser webcam access failed or denied:', err);
+        }
+    }
+
+    function sendNextBrowserFrame() {
+        if (!clientWebcamActive || !socket || !socket.connected || isSendingFrame) {
+            setTimeout(sendNextBrowserFrame, 100);
+            return;
+        }
+
+        const video = document.getElementById('client-webcam-element');
+        const canvas = document.getElementById('client-canvas-element');
+        if (!video || !canvas || video.readyState !== 4) {
+            setTimeout(sendNextBrowserFrame, 100);
+            return;
+        }
+
+        isSendingFrame = true;
+        canvas.width = 640;
+        canvas.height = 480;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, 640, 480);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.55);
+
+        socket.emit('process_browser_frame', dataUrl);
     }
 
     // -------------------------------------------------------------
@@ -787,6 +884,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnStart = document.getElementById('btn-camera-start');
         if (btnStart) {
             btnStart.addEventListener('click', async () => {
+                initBrowserWebcam();
                 await fetch('/api/camera/control', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'start' }) });
                 logEvent('Camera started.', 'info');
             });
