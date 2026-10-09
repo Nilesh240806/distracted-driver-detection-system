@@ -40,6 +40,11 @@ class CameraManager:
 
     def _open_camera(self):
         """Attempts to open the best available camera backend and index."""
+        # Skip hardware probe on headless Linux cloud environments (e.g. Render)
+        if sys.platform.startswith('linux'):
+            if os.environ.get('RENDER') or not os.path.exists('/dev/video0'):
+                print("[INFO] Headless Cloud Environment detected. Server webcam probe skipped (Browser webcam streaming active).")
+                return None
         # Try DirectShow first on Windows, then standard
         candidates = []
         if sys.platform.startswith('win'):
