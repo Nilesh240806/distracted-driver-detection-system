@@ -177,6 +177,8 @@ class CameraManager:
 
 
 camera_manager = CameraManager(src=0)
+database.init_db()
+camera_manager.start()
 
 # Connect engine event callback to SocketIO
 def broadcast_alert_event(telemetry):
@@ -368,15 +370,7 @@ def handle_browser_frame(data_url):
         print(f"[DEBUG] handle_browser_frame exception: {e}")
 
 
-# Auto-start camera upon launching
-def start_app_camera():
-    camera_manager.start()
-
 if __name__ == '__main__':
-    # Initialize DB
-    database.init_db()
-    # Start camera capture thread
-    threading.Thread(target=start_app_camera, daemon=True).start()
     
     print("\n" + "="*70)
     print(" VISION-BASED DISTRACTED DRIVER DETECTION SYSTEM ")
