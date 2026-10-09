@@ -72,8 +72,15 @@ class HandDetector:
                 'num_hands': 2,
                 'hand_landmarks_norm': [],
                 'hand_landmarks_px': [],
+                'state': 'TWO HANDS',
                 'hand_state': 'TWO HANDS',
+                'hand_time': 0.0,
+                'threshold_sec': self.one_hand_threshold_sec,
+                'single_hand_alert': False,
+                'no_hands_alert': False,
+                'new_alert_event': False,
                 'state_duration': 0.0,
+                'severity': 'INFO',
                 'alert_level': 'NONE',
                 'alert_message': 'System Active',
                 'hands_results': None
@@ -90,8 +97,15 @@ class HandDetector:
                 'num_hands': 2,
                 'hand_landmarks_norm': [],
                 'hand_landmarks_px': [],
+                'state': 'TWO HANDS',
                 'hand_state': 'TWO HANDS',
+                'hand_time': 0.0,
+                'threshold_sec': self.one_hand_threshold_sec,
+                'single_hand_alert': False,
+                'no_hands_alert': False,
+                'new_alert_event': False,
                 'state_duration': 0.0,
+                'severity': 'INFO',
                 'alert_level': 'NONE',
                 'alert_message': 'System Active',
                 'hands_results': None
@@ -132,23 +146,45 @@ class HandDetector:
                 self.state_start_time = current_time
             self.state_duration = current_time - self.state_start_time
 
+        single_hand_alert = (self.current_state == "ONE HAND" and self.state_duration >= self.one_hand_threshold_sec)
+        no_hands_alert = (self.current_state == "NO HANDS" and self.state_duration >= 1.5)
+
+        # New alert event triggers once per sustained state
+        new_alert_event = False
+        if single_hand_alert and not self.single_hand_alert_triggered:
+            new_alert_event = True
+            self.single_hand_alert_triggered = True
+        elif no_hands_alert and not self.no_hands_alert_triggered:
+            new_alert_event = True
+            self.no_hands_alert_triggered = True
+
         # Determine alert escalation
         alert_level = "NONE"
+        severity = "INFO"
         alert_message = f"Hands Status: {self.current_state}"
         
-        if self.current_state == "ONE HAND" and self.state_duration >= self.one_hand_threshold_sec:
+        if single_hand_alert:
             alert_level = "WARNING"
+            severity = "WARNING"
             alert_message = f"SINGLE-HAND DRIVING ({self.state_duration:.1f}s)"
-        elif self.current_state == "NO HANDS" and self.state_duration >= 1.5:
+        elif no_hands_alert:
             alert_level = "CRITICAL"
+            severity = "CRITICAL"
             alert_message = f"HANDS OFF WHEEL! ({self.state_duration:.1f}s)"
 
         return {
             'num_hands': num_hands,
             'hand_landmarks_norm': all_landmarks_norm,
             'hand_landmarks_px': all_landmarks_px,
+            'state': self.current_state,
             'hand_state': self.current_state,
+            'hand_time': round(self.state_duration, 2),
+            'threshold_sec': self.one_hand_threshold_sec,
+            'single_hand_alert': single_hand_alert,
+            'no_hands_alert': no_hands_alert,
+            'new_alert_event': new_alert_event,
             'state_duration': round(self.state_duration, 2),
+            'severity': severity,
             'alert_level': alert_level,
             'alert_message': alert_message,
             'hands_results': results
