@@ -341,7 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data && data.telemetry) {
                     updateDashboard(data.telemetry);
                 }
-                setTimeout(sendNextBrowserFrame, 50);
+                setTimeout(sendNextBrowserFrame, 25);
             });
 
             socket.on('alert_triggered', (telemetry) => {
@@ -411,25 +411,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    let lastFrameSentTime = 0;
+
     function sendNextBrowserFrame() {
+        const now = Date.now();
+        if (isSendingFrame && now - lastFrameSentTime > 1500) {
+            // Watchdog: reset stuck frame flag if network stalled
+            isSendingFrame = false;
+        }
+
         if (!clientWebcamActive || !socket || !socket.connected || isSendingFrame) {
-            setTimeout(sendNextBrowserFrame, 100);
+            setTimeout(sendNextBrowserFrame, 60);
             return;
         }
 
         const video = document.getElementById('client-webcam-element');
         const canvas = document.getElementById('client-canvas-element');
         if (!video || !canvas || video.readyState !== 4) {
-            setTimeout(sendNextBrowserFrame, 100);
+            setTimeout(sendNextBrowserFrame, 60);
             return;
         }
 
         isSendingFrame = true;
+        lastFrameSentTime = now;
         canvas.width = 640;
         canvas.height = 480;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0, 640, 480);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.55);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.50);
 
         socket.emit('process_browser_frame', dataUrl);
     }

@@ -2,10 +2,12 @@ services:
   - type: web
     name: distracted-driver-detection
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && pip uninstall -y opencv-contrib-python opencv-python && pip install opencv-python-headless==4.11.0.86 opencv-contrib-python-headless==4.11.0.86
     startCommand: python app.py
     envVars:
       - key: PORT
         value: 10000
       - key: HOST
         value: 0.0.0.0
+      - key: PYTHON_VERSION
+        value: 3.11.9

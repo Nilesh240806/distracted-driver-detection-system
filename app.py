@@ -124,8 +124,12 @@ class CameraManager:
                     print(f"[WARN] Camera read error: {e}")
                     self.consecutive_failures += 1
 
-            # If camera disconnected or failed repeatedly, attempt reconnection every 3 seconds
+            # If camera disconnected or failed repeatedly, attempt reconnection every 3 seconds (skip on cloud)
             if frame is None:
+                if sys.platform.startswith('linux') and (os.environ.get('RENDER') or not os.path.exists('/dev/video0')):
+                    time.sleep(1.0)
+                    continue
+
                 if self.consecutive_failures % 30 == 0:
                     print("[INFO] Attempting webcam reconnection...")
                     if self.cap:
@@ -213,19 +217,24 @@ def video_feed():
 @app.route('/api/status', methods=['GET'])
 def get_status():
     """Returns real-time system hardware, camera, and CV module status."""
+    has_face_engine = engine.face_detector.face_mesh is not None or engine.face_detector.haar_cascade is not None
+    has_hand_engine = engine.hand_detector.hands is not None
     return jsonify({
         'camera': 'CONNECTED' if camera_manager.camera_connected else 'DISCONNECTED',
         'is_running': camera_manager.is_running,
         'is_paused': camera_manager.is_paused,
-        'face_detection': 'ACTIVE',
-        'eye_tracking': 'ACTIVE',
-        'head_pose': 'ACTIVE',
-        'hand_detection': 'ACTIVE',
-        'yawning_detection': 'ACTIVE',
+        'face_detection': 'ACTIVE' if has_face_engine else 'DEGRADED',
+        'eye_tracking': 'ACTIVE' if engine.face_detector.face_mesh is not None else 'STANDBY',
+        'head_pose': 'ACTIVE' if engine.face_detector.face_mesh is not None else 'STANDBY',
+        'hand_detection': 'ACTIVE' if has_hand_engine else 'STANDBY',
+        'yawning_detection': 'ACTIVE' if engine.face_detector.face_mesh is not None else 'STANDBY',
         'alert_system': 'ACTIVE',
         'backend': 'CONNECTED',
         'fps': engine.fps,
-        'demo_mode': engine.demo_mode
+        'demo_mode': engine.demo_mode,
+        'mediapipe_face_mesh': engine.face_detector.face_mesh is not None,
+        'mediapipe_hands': engine.hand_detector.hands is not None,
+        'python_version': sys.version.split()[0]
     })
 
 
@@ -356,9 +365,15 @@ def handle_browser_frame(data_url):
             if frame.shape[1] > 640:
                 frame = cv2.resize(frame, (640, 480))
             
+            # Mirror horizontally for natural driver ergonomics
+            frame = cv2.flip(frame, 1)
+
             processed_frame, telemetry = engine.process_frame(frame)
             camera_manager.latest_telemetry = telemetry
             
+            # Broadcast telemetry to dashboard listeners
+            emit('telemetry_update', telemetry)
+
             ret, buffer = cv2.imencode('.jpg', processed_frame, [int(cv2.IMWRITE_JPEG_QUALITY), 65])
             if ret:
                 processed_b64 = "data:image/jpeg;base64," + base64.b64encode(buffer).decode('utf-8')

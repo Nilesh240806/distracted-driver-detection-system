@@ -13,21 +13,29 @@ MP_HANDS_AVAILABLE = False
 mp_hands = None
 mp_drawing = None
 mp_drawing_styles = None
+mp_hands_import_error = None
 
 try:
     import mediapipe as mp
-    mp_solutions = getattr(mp, 'solutions', None)
-    if mp_solutions is None:
-        try:
-            import mediapipe.python.solutions as mp_solutions
-        except Exception:
-            import mediapipe.solutions as mp_solutions
-    mp_hands = getattr(mp_solutions, 'hands', None)
-    mp_drawing = getattr(mp_solutions, 'drawing_utils', None)
-    mp_drawing_styles = getattr(mp_solutions, 'drawing_styles', None)
+    try:
+        from mediapipe.python.solutions import hands as mp_hands
+        from mediapipe.python.solutions import drawing_utils as mp_drawing
+        from mediapipe.python.solutions import drawing_styles as mp_drawing_styles
+    except Exception:
+        mp_solutions = getattr(mp, 'solutions', None)
+        if mp_solutions is not None:
+            mp_hands = getattr(mp_solutions, 'hands', None)
+            mp_drawing = getattr(mp_solutions, 'drawing_utils', None)
+            mp_drawing_styles = getattr(mp_solutions, 'drawing_styles', None)
+
     if mp_hands is not None:
         MP_HANDS_AVAILABLE = True
+        print("[INFO] MediaPipe Hands module loaded successfully.")
+    else:
+        mp_hands_import_error = "mp_hands is None"
+        print("[WARNING] MediaPipe loaded but hands solution was not found.")
 except Exception as e:
+    mp_hands_import_error = str(e)
     print(f"[WARNING] MediaPipe Hands not available on cloud host: {e}")
     MP_HANDS_AVAILABLE = False
 
@@ -38,10 +46,12 @@ class HandDetector:
     and enforces single-hand driving and hands-off-wheel safety thresholds.
     """
 
-    def __init__(self, one_hand_threshold_sec: float = 2.0, min_detection_confidence: float = 0.5, min_tracking_confidence: float = 0.5):
+    def __init__(self, one_hand_threshold_sec: float = 2.0, min_detection_confidence: float = 0.45, min_tracking_confidence: float = 0.45):
         self.one_hand_threshold_sec = one_hand_threshold_sec
         self.mp_hands = mp_hands
         self.hands = None
+        self.init_error = None
+
         if MP_HANDS_AVAILABLE and self.mp_hands is not None:
             try:
                 self.hands = self.mp_hands.Hands(
@@ -49,7 +59,9 @@ class HandDetector:
                     min_detection_confidence=min_detection_confidence,
                     min_tracking_confidence=min_tracking_confidence
                 )
+                print("[INFO] MediaPipe Hands model initialized successfully.")
             except Exception as e:
+                self.init_error = str(e)
                 print(f"[WARNING] Failed to initialize Hands object: {e}")
                 self.hands = None
 
@@ -92,7 +104,8 @@ class HandDetector:
 
         try:
             results = self.hands.process(frame_rgb)
-        except Exception:
+        except Exception as e:
+            print(f"[DEBUG] Hands.process error: {e}")
             return {
                 'num_hands': 2,
                 'hand_landmarks_norm': [],
