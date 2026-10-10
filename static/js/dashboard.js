@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let alertChart = null;
     let prevDriverStatus = 'SAFE';
     let prevAlertMsg = '';
-    let demoModeActive = true;
 
     // Continuous / Repeating Alarm state
     let repeatingAlarmTimer = null;
@@ -872,22 +871,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Demo Mode Toggle
-        const demoBtn = document.getElementById('btn-toggle-demo');
-        if (demoBtn) {
-            demoBtn.addEventListener('click', async () => {
-                demoModeActive = !demoModeActive;
-                await fetch('/api/demo/mode', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ enabled: demoModeActive })
-                });
-                const demoState = document.getElementById('demo-mode-state');
-                if (demoState) demoState.textContent = demoModeActive ? 'ENABLED' : 'DISABLED';
-                demoBtn.className = `btn btn-sm ${demoModeActive ? 'btn-outline-warning active' : 'btn-outline-secondary'}`;
-                logEvent(`Demo evaluation mode ${demoModeActive ? 'enabled' : 'disabled'}.`, 'info');
-            });
-        }
 
         // Camera Control Buttons
         const btnStart = document.getElementById('btn-camera-start');

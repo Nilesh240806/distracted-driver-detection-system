@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,8 +28,8 @@
                     <h1 class="h4 mb-0 fw-bold title-text tracking-wide">
                         VISION-BASED DISTRACTED DRIVER DETECTION SYSTEM
                     </h1>
-                    <p class="subtitle-text mb-0 text-muted small">
-                        Real-Time Driver Monitoring & Safety Alert System &bull; <span class="badge bg-dark text-cyan border border-cyan border-opacity-50">AI Telematics Prototype</span>
+                    <p class="subtitle-text mb-0 small">
+                        Real-Time Driver Monitoring &amp; Safety Alert System
                     </p>
                 </div>
             </div>
@@ -58,61 +58,21 @@
         <div class="container-fluid d-flex flex-wrap justify-content-between align-items-center gap-2">
             <!-- Camera Controls -->
             <div class="d-flex align-items-center gap-2">
-                <span class="text-muted small fw-semibold me-1"><i class="fa-solid fa-video me-1"></i>Live Camera:</span>
+                <span class="text-secondary small fw-semibold me-1"><i class="fa-solid fa-video me-1"></i>Live Camera:</span>
                 <button id="btn-camera-start" class="btn btn-sm btn-action btn-success"><i class="fa-solid fa-play me-1"></i> Start</button>
                 <button id="btn-camera-pause" class="btn btn-sm btn-action btn-warning"><i class="fa-solid fa-pause me-1"></i> Pause</button>
                 <button id="btn-camera-resume" class="btn btn-sm btn-action btn-primary"><i class="fa-solid fa-forward me-1"></i> Resume</button>
                 <button id="btn-camera-stop" class="btn btn-sm btn-action btn-danger"><i class="fa-solid fa-stop me-1"></i> Stop</button>
             </div>
 
-            <!-- Demo Mode & Simulation Controls -->
+            <!-- System Controls -->
             <div class="d-flex align-items-center gap-2">
-                <button id="btn-toggle-demo" class="btn btn-sm btn-outline-secondary">
-                    <i class="fa-solid fa-flask-vial me-1"></i> Demo Overlays: <span id="demo-mode-state">OFF</span>
-                </button>
-                <button id="btn-view-evaluation" class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#demo-panel">
-                    <i class="fa-solid fa-sliders me-1"></i> Viva Evaluation Panel
-                </button>
-                <button id="btn-emergency-reset" class="btn btn-sm btn-outline-light" onclick="triggerSimulation('reset')">
+                <button id="btn-emergency-reset" class="btn btn-sm btn-outline-secondary text-light" onclick="triggerSimulation('reset')" title="Reset System Detection States">
                     <i class="fa-solid fa-rotate-right me-1"></i> Reset States
                 </button>
             </div>
         </div>
     </section>
-
-    <!-- DEMO EVALUATION ACCORDION PANEL (Collapsed by default for pure live detection) -->
-    <div class="collapse" id="demo-panel">
-        <div class="px-4 py-3 bg-black bg-opacity-60 border-bottom border-warning border-opacity-25">
-            <div class="container-fluid">
-                <div class="row align-items-center g-3">
-                    <div class="col-lg-6">
-                        <div class="d-flex align-items-center gap-2 mb-1">
-                            <i class="fa-solid fa-circle-info text-warning"></i>
-                            <h6 class="mb-0 text-warning fw-bold small text-uppercase">Viva & Presentation Demonstration Mode</h6>
-                        </div>
-                        <p class="text-muted small mb-0">
-                            Threshold Rules: <strong>Eyes Closed &gt; 2.0s</strong> (Drowsiness Alert) &bull; 
-                            <strong>Looking Left/Right &gt; 3.0s</strong> (Distraction Alert) &bull; 
-                            <strong>One Hand &gt; 2.0s</strong> (Warning) &bull; 
-                            <strong>Yawning &gt; 1.2s</strong> &bull; 
-                            <strong>Critical &gt; 5.0s</strong> (Emergency Escalation).
-                        </p>
-                    </div>
-                    <div class="col-lg-6 text-lg-end">
-                        <span class="text-muted small me-2">Quick Scenario Simulation:</span>
-                        <div class="btn-group btn-group-sm flex-wrap">
-                            <button class="btn btn-outline-danger" onclick="triggerSimulation('drowsiness')">Eyes Closed</button>
-                            <button class="btn btn-outline-warning" onclick="triggerSimulation('head_left')">Look Left</button>
-                            <button class="btn btn-outline-warning" onclick="triggerSimulation('head_right')">Look Right</button>
-                            <button class="btn btn-outline-info" onclick="triggerSimulation('single_hand')">One Hand</button>
-                            <button class="btn btn-outline-primary" onclick="triggerSimulation('yawning')">Yawn</button>
-                            <button class="btn btn-outline-danger fw-bold" onclick="triggerSimulation('critical_emergency')">Emergency</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- MAIN COCKPIT BODY -->
     <main class="container-fluid px-4 py-3">
@@ -130,7 +90,6 @@
 
         <!-- EMERGENCY ESCALATION MODAL BANNER -->
         <div id="emergency-banner" class="alert alert-danger emergency-alert-card mb-3 p-3 d-none animate-pulse-emergency">
-
             <div class="d-flex flex-wrap justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-3">
                     <div class="emergency-icon-box">
@@ -138,7 +97,7 @@
                     </div>
                     <div>
                         <h5 class="alert-heading mb-1 text-danger fw-bold font-orbitron">
-                            EMERGENCY SAFETY ALERT SIMULATION
+                            EMERGENCY SAFETY ALERT ESCALATION
                         </h5>
                         <p class="mb-0 small text-light">
                             Driver safety system detected <strong>prolonged dangerous driving behavior</strong> exceeding 5 seconds.
@@ -146,13 +105,12 @@
                         <div class="emergency-details mt-1 small font-monospace text-warning">
                             <span><strong>Event:</strong> <span id="em-event">Severe Eye Closure / Distraction</span></span> | 
                             <span><strong>Time:</strong> <span id="em-time">--:--:--</span></span> | 
-                            <span><strong>Location:</strong> 37.7749° N, 122.4194° W (Demo Highway GPS)</span> | 
-                            <span class="text-info"><strong>Status:</strong> Emergency contact notification simulated</span>
+                            <span class="text-info"><strong>Status:</strong> Emergency safety escalation triggered</span>
                         </div>
                     </div>
                 </div>
                 <button class="btn btn-sm btn-outline-danger mt-2 mt-md-0" onclick="triggerSimulation('reset')">
-                    <i class="fa-solid fa-shield-halved me-1"></i> Acknowledge & Reset
+                    <i class="fa-solid fa-shield-halved me-1"></i> Acknowledge &amp; Reset
                 </button>
             </div>
         </div>
@@ -165,11 +123,11 @@
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-2 px-3 border-bottom border-secondary border-opacity-25">
                         <div class="d-flex align-items-center gap-2">
                             <i class="fa-solid fa-circle-dot text-danger pulse-dot"></i>
-                            <span class="fw-bold small tracking-wide text-uppercase">Live Driver Stream &amp; Vision Overlay</span>
+                            <span class="card-header-title fw-bold small tracking-wide text-uppercase text-light">Live Driver Stream &amp; Vision Overlay</span>
                         </div>
-                        <div class="d-flex align-items-center gap-3 small text-muted font-monospace">
+                        <div class="d-flex align-items-center gap-3 small text-secondary font-monospace">
                             <span id="cam-status-label"><i class="fa-solid fa-link text-success me-1"></i>CAM OK</span>
-                            <span>RES: 640x480</span>
+                            <span class="text-light">RES: 640x480</span>
                             <span class="badge bg-dark text-cyan border border-info border-opacity-50" id="fps-badge">FPS: 30</span>
                         </div>
                     </div>
@@ -182,7 +140,7 @@
                         <div id="camera-error-overlay" class="position-absolute top-0 start-0 w-100 h-100 d-none flex-column align-items-center justify-content-center bg-black bg-opacity-85 text-center p-4">
                             <i class="fa-solid fa-video-slash fa-3x text-danger mb-3"></i>
                             <h5 class="text-danger fw-bold">Camera Access Unavailable</h5>
-                            <p class="text-muted small max-w-md">Unable to access laptop webcam. Please check camera permissions in your browser or make sure no other program is using the camera.</p>
+                            <p class="text-secondary small max-w-md">Unable to access laptop webcam. Please check camera permissions in your browser or make sure no other program is using the camera.</p>
                             <button class="btn btn-sm btn-outline-warning" onclick="restartCamera()"><i class="fa-solid fa-arrows-rotate me-1"></i> Retry Connection</button>
                         </div>
 
@@ -192,14 +150,14 @@
                                 <span class="badge bg-success" id="hud-badge-status">SAFE</span>
                                 <span id="hud-alert-text">Monitoring active</span>
                             </div>
-                            <div class="text-muted small" id="hud-timers-breakdown">
+                            <div class="text-secondary small" id="hud-timers-breakdown">
                                 <!-- Dynamic countdown text -->
                             </div>
                         </div>
                     </div>
 
                     <!-- System Status Bar -->
-                    <div class="card-footer bg-transparent py-2 px-3 border-top border-secondary border-opacity-25 small text-muted">
+                    <div class="card-footer bg-transparent py-2 px-3 border-top border-secondary border-opacity-25 small text-secondary">
                         <div class="row g-2 text-center">
                             <div class="col"><i class="fa-solid fa-user-check text-success me-1"></i>Face: <span class="text-light fw-bold" id="status-face">ACTIVE</span></div>
                             <div class="col"><i class="fa-solid fa-eye text-success me-1"></i>Eyes: <span class="text-light fw-bold" id="status-eyes">ACTIVE</span></div>
@@ -220,13 +178,13 @@
                         <!-- Driver Status Card -->
                         <div class="col-sm-6">
                             <div class="card cockpit-card h-100 border-secondary border-opacity-25 p-3 text-center">
-                                <span class="telemetry-label text-muted small text-uppercase">Driver Status</span>
+                                <span class="telemetry-label small text-uppercase">Driver Status</span>
                                 <div class="mt-2">
                                     <span id="driver-status-badge" class="badge status-badge-safe fs-4 px-4 py-2 font-orbitron">
                                         SAFE
                                     </span>
                                 </div>
-                                <div class="text-muted small mt-2" id="driver-status-desc">Driver is attentive and alert</div>
+                                <div class="text-light-emphasis small mt-2" id="driver-status-desc">Driver is attentive and alert</div>
                             </div>
                         </div>
 
@@ -234,11 +192,11 @@
                         <div class="col-sm-6">
                             <div class="card cockpit-card h-100 border-secondary border-opacity-25 p-3 text-center">
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="telemetry-label text-muted small text-uppercase">Distraction Score</span>
+                                    <span class="telemetry-label small text-uppercase">Distraction Score</span>
                                     <span class="badge bg-dark text-cyan border border-info border-opacity-25" id="score-level-badge">Normal</span>
                                 </div>
                                 <div class="score-display font-orbitron fs-2 fw-bold text-success mt-1" id="distraction-score-text">
-                                    0<span class="fs-6 text-muted">/100</span>
+                                    0<span class="fs-6 text-secondary">/100</span>
                                 </div>
                                 <!-- Progress Bar -->
                                 <div class="progress score-progress bg-dark mt-2" style="height: 8px;">
@@ -255,23 +213,23 @@
                         <div class="col-sm-6">
                             <div class="card cockpit-card p-3 border-secondary border-opacity-25" id="card-eyes">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="telemetry-label text-muted small fw-semibold"><i class="fa-solid fa-eye text-cyan me-1"></i> Eye Monitoring</span>
+                                    <span class="telemetry-label small fw-semibold"><i class="fa-solid fa-eye text-cyan me-1"></i> Eye Monitoring</span>
                                     <span class="badge bg-dark text-light border border-secondary" id="val-eye-state">OPEN</span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-baseline">
-                                    <span class="small text-muted">EAR Metric:</span>
+                                    <span class="small text-secondary fw-medium">EAR Metric:</span>
                                     <span class="font-monospace fw-bold text-light" id="val-ear">0.28</span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-baseline mt-1">
-                                    <span class="small text-muted">Closure Timer:</span>
+                                    <span class="small text-secondary fw-medium">Closure Timer:</span>
                                     <span class="font-monospace fw-bold text-success" id="val-eye-timer">0.00 / 2.00 s</span>
                                 </div>
                                 <div class="progress mt-2 bg-dark" style="height: 5px;">
                                     <div id="bar-eye-timer" class="progress-bar bg-success" style="width: 0%"></div>
                                 </div>
-                                <div class="d-flex justify-content-between text-muted small mt-2">
-                                    <span>Total Blinks: <strong class="text-light" id="val-total-blinks">0</strong></span>
-                                    <span class="text-info small">Drowsiness Alert &gt;2s</span>
+                                <div class="d-flex justify-content-between small mt-2">
+                                    <span class="text-secondary">Total Blinks: <strong class="text-light" id="val-total-blinks">0</strong></span>
+                                    <span class="text-cyan small fw-semibold">Drowsiness Alert &gt;2s</span>
                                 </div>
                             </div>
                         </div>
@@ -280,23 +238,23 @@
                         <div class="col-sm-6">
                             <div class="card cockpit-card p-3 border-secondary border-opacity-25" id="card-head">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="telemetry-label text-muted small fw-semibold"><i class="fa-solid fa-arrows-to-eye text-cyan me-1"></i> Head Direction</span>
+                                    <span class="telemetry-label small fw-semibold"><i class="fa-solid fa-arrows-to-eye text-cyan me-1"></i> Head Direction</span>
                                     <span class="badge bg-dark text-light border border-secondary" id="val-head-dir">CENTER</span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-baseline">
-                                    <span class="small text-muted">Yaw Angle:</span>
+                                    <span class="small text-secondary fw-medium">Yaw Angle:</span>
                                     <span class="font-monospace fw-bold text-light" id="val-head-yaw">0.0°</span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-baseline mt-1">
-                                    <span class="small text-muted">Turn Timer:</span>
+                                    <span class="small text-secondary fw-medium">Turn Timer:</span>
                                     <span class="font-monospace fw-bold text-success" id="val-head-timer">0.00 / 3.00 s</span>
                                 </div>
                                 <div class="progress mt-2 bg-dark" style="height: 5px;">
                                     <div id="bar-head-timer" class="progress-bar bg-success" style="width: 0%"></div>
                                 </div>
-                                <div class="d-flex justify-content-between text-muted small mt-2">
-                                    <span>Pose: <strong class="text-light" id="val-head-pose">Aligned</strong></span>
-                                    <span class="text-info small">Looking Away &gt;3s</span>
+                                <div class="d-flex justify-content-between small mt-2">
+                                    <span class="text-secondary">Pose: <strong class="text-light" id="val-head-pose">Aligned</strong></span>
+                                    <span class="text-cyan small fw-semibold">Looking Away &gt;3s</span>
                                 </div>
                             </div>
                         </div>
@@ -305,23 +263,23 @@
                         <div class="col-sm-6">
                             <div class="card cockpit-card p-3 border-secondary border-opacity-25" id="card-hands">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="telemetry-label text-muted small fw-semibold"><i class="fa-solid fa-hand text-cyan me-1"></i> Hand Interaction</span>
+                                    <span class="telemetry-label small fw-semibold"><i class="fa-solid fa-hand text-cyan me-1"></i> Hand Interaction</span>
                                     <span class="badge bg-dark text-light border border-secondary" id="val-hands-state">TWO HANDS</span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-baseline">
-                                    <span class="small text-muted">Hands Count:</span>
+                                    <span class="small text-secondary fw-medium">Hands Count:</span>
                                     <span class="font-monospace fw-bold text-light" id="val-hands-count">2 Visible</span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-baseline mt-1">
-                                    <span class="small text-muted">Off-Steering Timer:</span>
+                                    <span class="small text-secondary fw-medium">Off-Steering Timer:</span>
                                     <span class="font-monospace fw-bold text-success" id="val-hands-timer">0.00 / 2.00 s</span>
                                 </div>
                                 <div class="progress mt-2 bg-dark" style="height: 5px;">
                                     <div id="bar-hands-timer" class="progress-bar bg-success" style="width: 0%"></div>
                                 </div>
-                                <div class="d-flex justify-content-between text-muted small mt-2">
-                                    <span>Steering: <strong class="text-success" id="val-steering-status">Engaged</strong></span>
-                                    <span class="text-info small">Single Hand &gt;2s</span>
+                                <div class="d-flex justify-content-between small mt-2">
+                                    <span class="text-secondary">Steering: <strong class="text-success" id="val-steering-status">Engaged</strong></span>
+                                    <span class="text-cyan small fw-semibold">Single Hand &gt;2s</span>
                                 </div>
                             </div>
                         </div>
@@ -330,23 +288,23 @@
                         <div class="col-sm-6">
                             <div class="card cockpit-card p-3 border-secondary border-opacity-25" id="card-yawn">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="telemetry-label text-muted small fw-semibold"><i class="fa-solid fa-face-smile text-cyan me-1"></i> Yawn / Fatigue</span>
+                                    <span class="telemetry-label small fw-semibold"><i class="fa-solid fa-face-smile text-cyan me-1"></i> Yawn / Fatigue</span>
                                     <span class="badge bg-dark text-light border border-secondary" id="val-yawn-state">NO</span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-baseline">
-                                    <span class="small text-muted">MAR Metric:</span>
+                                    <span class="small text-secondary fw-medium">MAR Metric:</span>
                                     <span class="font-monospace fw-bold text-light" id="val-mar">0.20</span>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-baseline mt-1">
-                                    <span class="small text-muted">Yawn Duration:</span>
+                                    <span class="small text-secondary fw-medium">Yawn Duration:</span>
                                     <span class="font-monospace fw-bold text-success" id="val-yawn-timer">0.00 / 1.20 s</span>
                                 </div>
                                 <div class="progress mt-2 bg-dark" style="height: 5px;">
                                     <div id="bar-yawn-timer" class="progress-bar bg-success" style="width: 0%"></div>
                                 </div>
-                                <div class="d-flex justify-content-between text-muted small mt-2">
-                                    <span>Total Yawns: <strong class="text-light" id="val-total-yawns">0</strong></span>
-                                    <span class="text-info small">Yawn Alert &gt;1.2s</span>
+                                <div class="d-flex justify-content-between small mt-2">
+                                    <span class="text-secondary">Total Yawns: <strong class="text-light" id="val-total-yawns">0</strong></span>
+                                    <span class="text-cyan small fw-semibold">Yawn Alert &gt;1.2s</span>
                                 </div>
                             </div>
                         </div>
@@ -358,13 +316,13 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="d-flex align-items-center gap-2">
                                 <i class="fa-solid fa-bell text-success" id="alert-card-icon"></i>
-                                <span class="fw-bold small text-uppercase">Current Alert Monitor</span>
+                                <span class="card-header-title fw-bold small text-uppercase text-light">Current Alert Monitor</span>
                             </div>
                             <span class="badge bg-success" id="alert-severity-badge">INFO</span>
                         </div>
                         <div class="mt-2 p-2 rounded bg-black bg-opacity-50 border border-secondary border-opacity-25 font-monospace text-light small d-flex justify-content-between align-items-center">
                             <span id="active-alert-msg">Driver monitoring active - Safe</span>
-                            <span class="text-muted small" id="alert-cooldown-indicator"></span>
+                            <span class="text-secondary small" id="alert-cooldown-indicator"></span>
                         </div>
                     </div>
 
@@ -380,11 +338,11 @@
             <div class="col-lg-4">
                 <div class="card cockpit-card h-100 border-secondary border-opacity-25">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-2 px-3 border-bottom border-secondary border-opacity-25">
-                        <span class="fw-bold small text-uppercase"><i class="fa-solid fa-terminal text-cyan me-1"></i> Live Event Console</span>
-                        <button class="btn btn-sm btn-link text-muted p-0" onclick="clearEventConsole()" title="Clear Console">Clear</button>
+                        <span class="card-header-title fw-bold small text-uppercase text-light"><i class="fa-solid fa-terminal text-cyan me-1"></i> Live Event Console</span>
+                        <button class="btn btn-sm btn-link text-info text-decoration-none p-0" onclick="clearEventConsole()" title="Clear Console">Clear</button>
                     </div>
                     <div class="card-body p-2 console-box font-monospace small" id="event-log-console">
-                        <div class="log-entry text-muted">[00:00:00] System initialized. Waiting for camera stream...</div>
+                        <div class="log-entry text-secondary">[00:00:00] System initialized. Waiting for camera stream...</div>
                     </div>
                 </div>
             </div>
@@ -393,7 +351,7 @@
             <div class="col-lg-5">
                 <div class="card cockpit-card h-100 border-secondary border-opacity-25">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-2 px-3 border-bottom border-secondary border-opacity-25">
-                        <span class="fw-bold small text-uppercase"><i class="fa-solid fa-clock-rotate-left text-warning me-1"></i> Confirmed Alert History</span>
+                        <span class="card-header-title fw-bold small text-uppercase text-light"><i class="fa-solid fa-clock-rotate-left text-warning me-1"></i> Confirmed Alert History</span>
                         <div class="d-flex gap-2">
                             <a href="/api/alerts/export" class="btn btn-sm btn-outline-info py-0 px-2" title="Export CSV">
                                 <i class="fa-solid fa-file-csv me-1"></i> CSV
@@ -416,7 +374,7 @@
                             </thead>
                             <tbody id="alert-history-tbody">
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-3">No alerts recorded yet.</td>
+                                    <td colspan="5" class="text-center text-secondary py-3">No alerts recorded yet.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -428,8 +386,8 @@
             <div class="col-lg-3">
                 <div class="card cockpit-card h-100 border-secondary border-opacity-25">
                     <div class="card-header bg-transparent d-flex justify-content-between align-items-center py-2 px-3 border-bottom border-secondary border-opacity-25">
-                        <span class="fw-bold small text-uppercase"><i class="fa-solid fa-chart-pie text-cyan me-1"></i> Alert Analytics</span>
-                        <span class="badge bg-dark text-muted" id="total-alerts-count">Total: 0</span>
+                        <span class="card-header-title fw-bold small text-uppercase text-light"><i class="fa-solid fa-chart-pie text-cyan me-1"></i> Alert Analytics</span>
+                        <span class="badge bg-dark text-cyan border border-info border-opacity-50" id="total-alerts-count">Total: 0</span>
                     </div>
                     <div class="card-body p-2 d-flex flex-column align-items-center justify-content-center" style="height: 220px;">
                         <canvas id="alertDistributionChart"></canvas>
@@ -442,8 +400,8 @@
     </main>
 
     <!-- FOOTER -->
-    <footer class="cockpit-footer py-2 px-4 border-top border-secondary border-opacity-25 text-center text-muted small">
-        <span>Vision-Based Distracted Driver Detection System &bull; College Mini-Project Live Demonstration &bull; Powered by OpenCV &amp; MediaPipe</span>
+    <footer class="cockpit-footer py-2 px-4 border-top border-secondary border-opacity-25 text-center small">
+        <span>Vision-Based Distracted Driver Detection System &bull; Powered by OpenCV &amp; MediaPipe</span>
     </footer>
 
     <!-- Bootstrap 5 JS -->
